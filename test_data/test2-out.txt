@@ -1,0 +1,25 @@
+Stage 1: Create Embeddings
+"alpha" -> (1 0)
+"beta" -> (0 1)
+Stage 2: Projections
+Q Projection:
+2.000 2.000
+1.000 -1.000
+K Projection:
+4.000 1.000
+2.000 -0.500
+V Projection:
+0.000 4.000
+2.000 0.000
+Stage 3: Attention Scores (Prompt)
+-inf -inf
+-inf 1.768
+Stage 4: Attention Weights (Prompt)
+0.000 0.000
+0.000 1.000
+Stage 5: Attention Output (Prompt)
+0.000 0.000
+2.000 0.000
+Stage 6: Generated Outputs
+Gen 0: -1.572 1.786
+Dot products computed: 10

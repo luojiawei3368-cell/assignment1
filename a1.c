@@ -231,6 +231,31 @@ void create_embeddings(
     (void)text_len;
     /* TODO: collect the unique tokens, sort them lexicographically,
        and print the one-hot vectors for the unique tokens. */
+       //1.use qsort to sort the token
+       qsort(embedding_table, text_len, MAX_TOKEN_LENGTH + 1, compare_tokens);
+       //2.remove duplicates
+       char unique_tokens[MAX_TEXT_SIZE][MAX_TOKEN_LENGTH + 1];
+       int count = 0;
+       for (int i = 0; i < text_len; i++) {
+        if (i == 0 || strcmp(embedding_table[i], embedding_table[i-1]) != 0) {
+            strcpy(unique_tokens[count], embedding_table[i]);
+            count++;
+        }
+       }
+       //3.print every unique token and their one-hot vector
+       for (int i = 0; i <= count - 1; i++) {
+        printf("\"%s\" -> (", unique_tokens[i]);
+        for (int j = 0; j <= count - 1; j++) {
+            if (j == i) {
+                printf("1");
+            } else {
+                printf("0");
+            } if (j < count - 1) {
+                printf(" ");
+            }
+        }
+        printf(")\n");
+       }
 }
 
 void compute_projection(int count, int d, double src[MAX_TOKENS][MAX_D],

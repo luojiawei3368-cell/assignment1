@@ -177,20 +177,52 @@ void read_input(int *n, int *d, int *g, int *text_len,
                 double wq[MAX_D][MAX_D], double wk[MAX_D][MAX_D],
                 double wv[MAX_D][MAX_D]) {
     /* Supress compiler warning for unused variables until implemented */
-    (void)n;
-    (void)d;
-    (void)g;
-    (void)text_len;
-    (void)embedding_table;
-    (void)mask;
-    (void)prompt;
-    (void)gen;
-    (void)wq;
-    (void)wk;
-    (void)wv;
+    
     /* TODO: read all the input from stdin. For reading tokens into the fixed size
        char array use the constant TOKEN_STR_SCANF_FORMAT with scanf which sets the
        maximum number of chars that can be read. */
+        scanf("%d", n);
+       scanf("%d", d);
+       scanf("%d", g);
+       scanf("%d", text_len);
+       //2.read tokens
+       for (int i = 0; i < *text_len; i++) {
+        scanf(TOKEN_STR_SCANF_FORMAT, embedding_table[i]);
+       }
+       //3.read mask
+       for (int i = 0; i < *n; i++) {
+        scanf("%d", &mask[i]);
+       }
+       //4.read prompt (nxd)
+       for (int i = 0; i < *n; i++) {
+        for (int j = 0; j < *d; j++) {
+            scanf("%lf", &prompt[i][j]);
+        }
+       }
+       //5.read gen (gxd)
+       for (int i = 0; i < *g; i++) {
+        for (int j = 0; j < *d; j++) {
+            scanf("%lf", &gen[i][j]);
+        }
+       }
+       //6.read wq (dxd)
+       for (int i = 0; i < *d; i++) {
+        for (int j = 0; j < *d; j++) {
+            scanf("%lf", &wq[i][j]);
+        }
+       }
+       //7.read wk(dxd)
+       for (int i = 0; i < *d; i++) {
+        for (int j = 0; j < *d; j++) {
+            scanf("%lf", &wk[i][j]);
+        }
+       }
+       //8.read wv(dxd)
+       for (int i = 0; i < *d; i++) {
+        for (int j = 0; j < *d; j++) {
+            scanf("%lf", &wv[i][j]);
+        }
+       }
 }
 
 void create_embeddings(

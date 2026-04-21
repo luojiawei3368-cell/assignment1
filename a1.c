@@ -269,6 +269,15 @@ void compute_projection(int count, int d, double src[MAX_TOKENS][MAX_D],
     (void)w;
     (void)dest;
     /* TODO: multiply each source row by the projection matrix. */
+    for (int i = 0; i < count; i++) {
+        for (int j = 0; j < d; j++) {
+            double sum = 0.0;
+            for (int m = 0; m < d; m++) {
+                sum += src[i][m] * w[m][j];
+            }
+            dest[i][j] = sum;
+        }
+    }
 }
 
 void compute_attention_scores_or_weights_prompt(

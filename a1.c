@@ -250,7 +250,8 @@ void create_embeddings(
                 printf("1");
             } else {
                 printf("0");
-            } if (j < count - 1) {
+            } 
+            if (j < count - 1) {
                 printf(" ");
             }
         }

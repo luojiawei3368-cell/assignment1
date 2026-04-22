@@ -299,6 +299,29 @@ void compute_attention_scores_or_weights_prompt(
     /* TODO: compute scaled dot-product attention scores with causal and
        padding masking. If apply_softmax == APPLY_SOFTMAX, convert each row
        into attention weights with a stable softmax. */
+       //1.point out the masked elements in score with -infinity
+       //then do the calculation
+       //stage3: compute attention scores with softmax
+       for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            //causal mask
+            if (mask[i] == 0) {
+                scores_or_weights[i][j] = -INFINITY;
+            } else if (mask[j] == 0) {
+                scores_or_weights[i][j] = -INFINITY;
+            } else if (j > i) { 
+                //padding mask
+                scores_or_weights[i][j] = -INFINITY;
+            } else {
+                //2.use the formula to calculate the score
+                double sum = 0.0;
+                for (int m = 0; m < d; m++) {
+                    sum += q[i][m] * k[j][m];
+                }
+                scores_or_weights[i][j] = sum / sqrt(d);
+            }
+        }
+       }
 }
 
 void compute_attention_output_prompt(

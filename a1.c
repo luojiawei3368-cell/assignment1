@@ -269,11 +269,14 @@ void compute_projection(int count, int d, double src[MAX_TOKENS][MAX_D],
     (void)w;
     (void)dest;
     /* TODO: multiply each source row by the projection matrix. */
+    // loop each of the count prompt tokens
     for (int i = 0; i < count; i++) {
+        // loop each of the d componets
         for (int j = 0; j < d; j++) {
+            //reset accumulator for each output
             double sum = 0.0;
             for (int m = 0; m < d; m++) {
-                sum += src[i][m] * w[m][j];
+                sum += src[i][m] * w[m][j]; //dot product
             }
             dest[i][j] = sum;
         }

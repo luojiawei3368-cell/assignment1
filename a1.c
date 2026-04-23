@@ -301,7 +301,8 @@ void compute_attention_scores_or_weights_prompt(
        into attention weights with a stable softmax. */
        //1.point out the masked elements in score with -infinity
        //then do the calculation
-       //stage3: compute attention scores with softmax
+       //stage3: compute attention scores 
+       //stage4: use stable softmax to calculate the weithts
        for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             //causal mask
@@ -321,6 +322,41 @@ void compute_attention_scores_or_weights_prompt(
                 scores_or_weights[i][j] = sum / sqrt(d);
             }
         }
+        //1.update the max score to find out the biggest one
+        double max_score = -INFINITY;
+        for (int j = 0; j < n; j++) {
+            if (scores_or_weights[i][j] != -INFINITY
+            && scores_or_weights[i][j] > max_score) {
+                max_score = scores_or_weights[i][j]
+            }
+        }
+        //2.calculated the dominator of the formula
+        double sum_score = 0.0;
+        for (int j = 0; j < n; j++) {
+            if (scores_or_weights[i][j] != -INFINITY) {
+                sum_score += exp(scores_or_weights[i][j] - max_score);
+            }
+        }
+        //3.calculate the weights, subsitube into the formula
+        //the whole row turn to 0 when sum_score == 0.0
+        if (sum_score == 0.0) {
+            for (int j = 0; j < n; j++) {
+              scores_or_weights[i][j] = 0.0;  
+            }
+
+        } else {
+            //weight = 0 when score = -INFINITY
+            for (int j = 0; j < n; j++) {
+                if (scores_or_weights[i][j] == -INFINITY) {
+                    scores_or_weights[i][j] = 0.0;
+                } else {
+                    scores_or_weights[i][j] = 
+                    exp(scores_or_weights[i][j] - max_score) / sum_score;
+                }
+            }
+        }
+        
+
        }
 }
 

@@ -342,6 +342,7 @@ void compute_attention_scores_or_weights_prompt(
         }
         //3.calculate the weights, subsitube into the formula
         //the whole row turn to 0 when sum_score == 0.0
+        //deminator can't be zero
         if (sum_score == 0.0) {
             for (int j = 0; j < n; j++) {
               scores_or_weights[i][j] = 0.0;  

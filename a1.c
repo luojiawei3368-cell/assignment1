@@ -3,7 +3,7 @@
 *                  Skeleton code: COMP10002 Assignment 1 2026                 *
 *              Written by: Dr. Shaanan Cohney and Kacie Beckett               *
 *        Attention Is All You Need (Single-Head Attention with KV Cache)      *
-*           Edited by: [PLEASE ADD YOUR FULL NAME AND STUDENT ID HERE]        *
+*           Edited by: [Jiawei Luo.   1809823]        *
 *============================================================================*/
 /*==========================================================*
 *                   COMPLEXITY ANALYSIS                     *

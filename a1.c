@@ -323,14 +323,16 @@ void compute_attention_scores_or_weights_prompt(
             }
         }
         //1.update the max score to find out the biggest one
+       if (apply_softmax == APPLY_SOFTMAX) {
+        
         double max_score = -INFINITY;
         for (int j = 0; j < n; j++) {
             if (scores_or_weights[i][j] != -INFINITY
             && scores_or_weights[i][j] > max_score) {
-                max_score = scores_or_weights[i][j]
+                max_score = scores_or_weights[i][j];
             }
         }
-        //2.calculated the dominator of the formula
+        //2.calculate the dominator of the formula
         double sum_score = 0.0;
         for (int j = 0; j < n; j++) {
             if (scores_or_weights[i][j] != -INFINITY) {
@@ -358,7 +360,9 @@ void compute_attention_scores_or_weights_prompt(
         
 
        }
-}
+    
+    }
+}  
 
 void compute_attention_output_prompt(
     int n, int d, double weights[MAX_TOKENS][MAX_TOKENS],

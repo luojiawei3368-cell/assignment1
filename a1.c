@@ -251,6 +251,7 @@ void create_embeddings(
             } else {
                 printf("0");
             } 
+            //fill the remaining positions with space
             if (j < count - 1) {
                 printf(" ");
             }

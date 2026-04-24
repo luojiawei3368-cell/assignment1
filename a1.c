@@ -9,10 +9,20 @@
 *                   COMPLEXITY ANALYSIS                     *
 *==========================================================*/
 /*
-Stage 1:
-Stage 2:
-Stage 3:
-Stage 4:
+Stage 1:O(text_len log text_len + count ^2),where count is the number
+of unique tokens. The qsort call contributes O(text_len log text_len),
+to sort tokens. The printing loop is two nested loops each of length of count,
+contributes O(count^2), since their size relationship can't be determined
+both are kept.
+Stage 2:O(nd^2), the stage2 is made of three nested loops, the outer loop 
+runs n times(per prompt token), the middle loop runs d times(per output component), 
+the inner loop runs d times(the dot product).
+Stage 3:O(n^2d), the stage3 is made of three nested lops, the outer loop runs 
+n times(prompt token for i), the middle loop runs n times(prompt token for j),
+the inner loop runs d times to compute the dot product. The operation is n*n*d
+Stage 4:O(n^2d), the stage uses the same scorre computation as stage3,
+giving O(n^2d), the softmax part adds three loops of n inside the outer i loop,
+contributing 3n, which is donminated by n^2d. Totally, O(3n + n^2d)= O(n^2d)
 Stage 5:
 Stage 6:
 */
@@ -277,7 +287,7 @@ void compute_projection(int count, int d, double src[MAX_TOKENS][MAX_D],
             //reset accumulator for each output
             double sum = 0.0;
             for (int m = 0; m < d; m++) {
-                sum += src[i][m] * w[m][j]; //dot product
+                sum += src[i][m] * w[m][j]; //dot product of matric
             }
             dest[i][j] = sum;
         }
@@ -323,7 +333,8 @@ void compute_attention_scores_or_weights_prompt(
                 scores_or_weights[i][j] = sum / sqrt(d);
             }
         }
-        //1.update the max score to find out the biggest one
+        //softmax part 
+        //1.update the max score until find out the biggest one
        if (apply_softmax == APPLY_SOFTMAX) {
         
         double max_score = -INFINITY;
@@ -376,6 +387,19 @@ void compute_attention_output_prompt(
     (void)v;
     (void)out;
     /* TODO: compute the weighted sums of the value rows for the prompt. */
+    //1.go through every token
+    for (int i = 0; i < n; i++) {
+        //2.go through every dimention in the vector
+        for (int j = 0; j < d; j++) {
+            //reset 
+            out[i][j] = 0.0;
+            //3.calculate the weighted sum
+            for (int m = 0; m < n; m++) {
+                out[i][j] += weights[i][m] * v[m][j];
+            }
+
+        }
+    }
 }
 
 long compute_generation_with_cache(

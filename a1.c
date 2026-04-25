@@ -428,12 +428,15 @@ long compute_generation_with_cache(
        the number of dot products performed for that generation step. */
     //1.multiply the embedding of the row gen[t] by the wq matrix to obtain 
     //a  vector of length d
+    //the last step: count how many dot producte were computed
+    long dot_count = 0;
     double new_vector[MAX_D];// set a temporary one
     for (int j = 0; j < d; j++) {
         new_vector[j] = 0.0;
         for (int m = 0; m < d; m++) {
             new_vector[j] += gen[t][m] * wq[m][j];
         }
+        dot_count++;
     }
     //2.cpmpute K for the new tokens and append it to the cache
     for (int j = 0; j < d; j++) {
@@ -441,6 +444,7 @@ long compute_generation_with_cache(
         for (int m = 0; m < d; m++) {
             k_cache[n+t][j] += gen[t][m] * wk[m][j];
         }
+        dot_count++;
     }
     //3.compute V for the new tokens and append it to the cache
     for (int j = 0; j < d; j++) {
@@ -448,10 +452,63 @@ long compute_generation_with_cache(
         for (int m = 0; m < d; m++) {
             v_cache[n+t][j] += gen[t][m] * wv[m][j];
         }
+        dot_count++;
     }
     //4/calculate the scores
-    double scores[]
-       return 0;
+    double scores[MAX_TOKENS + MAX_GEN];
+    //compute scaled dot product scores between q and all ached keys
+    for (int i = 0; i <= n + t; i++) {
+        //padding mask
+        if (i < n && mask[i] == 0) {
+            scores[i] = -INFINITY;
+        } else {
+            //like stage3,calculate the score
+            double dot_product = 0.0;
+            for (int m = 0; m < d; m++) {
+                dot_product += new_vector[m] * k_cache[i][m];
+            }
+            scores[i] = dot_product / sqrt(d);
+            dot_count++;
+        }
+    }
+    //5. stable softmax the cached scores
+    //find the biggest score
+    double max_score = -INFINITY;
+    for (int i = 0; i <= n + t; i++) {
+        if (scores[i] > max_score) {
+            max_score = scores[i];
+        }
+    }
+    double weights[MAX_TOKENS + MAX_GEN];
+    //calculate the deminator
+    double sum_scores = 0.0;
+    for (int i = 0; i <=n + t; i++) {
+        if (scores[i] != -INFINITY) {
+            weights[i]= exp(scores[i] - max_score);
+            sum_scores += weights[i];
+        }
+    }
+    
+    //deminator can't be zero
+    if (sum_scores == 0.0) {
+        for (int i = 0; i <=n + t; i++) {
+            weights[i] = 0.0;
+        } 
+    } else {
+        for (int i = 0; i <=n + t; i++) {
+            weights[i] = weights[i] / sum_scores;
+        }
+    }
+    //6.weighted sum of cached value vectirs
+    for (int j = 0; j < d; j++) { // for every dimention
+        output[j] = 0.0;
+        //loop the cached value
+        for (int i = 0; i <=n + t; i++) {
+            output[j] += weights[i] * v_cache[i][j];
+        }
+        dot_count++;
+    }
+    return dot_count;
 }
 
 /*==========================================================*

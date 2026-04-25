@@ -23,7 +23,9 @@ the inner loop runs d times to compute the dot product. The operation is n*n*d
 Stage 4:O(n^2d), the stage uses the same scorre computation as stage3,
 giving O(n^2d), the softmax part adds three loops of n inside the outer i loop,
 contributing 3n, which is donminated by n^2d. Totally, O(3n + n^2d)= O(n^2d)
-Stage 5:
+Stage 5:O(n^2d), the stage5 is made of three nested loops, the outer loop runs n 
+times(every token), the middle loop runs d times(dimention in vector), the inner loop
+runs n times. The whole operation is O(n*d*n)=O(n^2d)
 Stage 6:
 */
 
@@ -424,7 +426,32 @@ long compute_generation_with_cache(
     (void)output;
     /* TODO: compute the next generated output using the KV cache and return
        the number of dot products performed for that generation step. */
-    return 0;
+    //1.multiply the embedding of the row gen[t] by the wq matrix to obtain 
+    //a  vector of length d
+    double new_vector[MAX_D];// set a temporary one
+    for (int j = 0; j < d; j++) {
+        new_vector[j] = 0.0;
+        for (int m = 0; m < d; m++) {
+            new_vector[j] += gen[t][m] * wq[m][j];
+        }
+    }
+    //2.cpmpute K for the new tokens and append it to the cache
+    for (int j = 0; j < d; j++) {
+        k_cache[n+t][j] = 0.0;
+        for (int m = 0; m < d; m++) {
+            k_cache[n+t][j] += gen[t][m] * wk[m][j];
+        }
+    }
+    //3.compute V for the new tokens and append it to the cache
+    for (int j = 0; j < d; j++) {
+        v_cache[n+t][j] = 0.0;
+        for (int m = 0; m < d; m++) {
+            v_cache[n+t][j] += gen[t][m] * wv[m][j];
+        }
+    }
+    //4/calculate the scores
+    double scores[]
+       return 0;
 }
 
 /*==========================================================*

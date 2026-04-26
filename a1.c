@@ -26,7 +26,12 @@ contributing 3n, which is donminated by n^2d. Totally, O(3n + n^2d)= O(n^2d)
 Stage 5:O(n^2d), the stage5 is made of three nested loops, the outer loop runs n 
 times(every token), the middle loop runs d times(dimention in vector), the inner loop
 runs n times. The whole operation is O(n*d*n)=O(n^2d)
-Stage 6:
+Stage 6:O(d^2 + (n+g)*d). In the three projections, there are two nested 
+loops in each projection((d^2)*3). For the calculation of the score, computes ((n+g)*d) times,
+since the cache hold a most (n+g) entries and each score is a length-d dot-product.The output
+as a weighted sum of cached values is also o((n+g)*d), softmax over the values is
+o(n+g), which can be ignored.
+
 */
 
 /*==========================================================*

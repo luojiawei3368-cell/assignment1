@@ -3,7 +3,7 @@
 *                  Skeleton code: COMP10002 Assignment 1 2026                 *
 *              Written by: Dr. Shaanan Cohney and Kacie Beckett               *
 *        Attention Is All You Need (Single-Head Attention with KV Cache)      *
-*           Edited by: [Jiawei Luo.   1809823]        *
+*           Edited by: Jiawei Luo.   1809823
 *============================================================================*/
 /*==========================================================*
 *                   COMPLEXITY ANALYSIS                     *
@@ -186,6 +186,9 @@ int main(void) {
 *                 FUNCTIONS TO IMPLEMENT                    *
 *==========================================================*/
 
+/*satge0: read all the input needed, the Stage 1 token text, the prompt mask, the prompt
+embedding rows, the generated embedding rows, and finally the three
+projection matrices Wq, Wk, Wv.*/
 void read_input(int *n, int *d, int *g, int *text_len,
                 char embedding_table[MAX_TEXT_SIZE][MAX_TOKEN_LENGTH + 1],
                 int mask[MAX_TOKENS],
@@ -193,90 +196,101 @@ void read_input(int *n, int *d, int *g, int *text_len,
                 double gen[MAX_GEN][MAX_D],
                 double wq[MAX_D][MAX_D], double wk[MAX_D][MAX_D],
                 double wv[MAX_D][MAX_D]) {
-    /* Supress compiler warning for unused variables until implemented */
-    
-    /* TODO: read all the input from stdin. For reading tokens into the fixed size
-       char array use the constant TOKEN_STR_SCANF_FORMAT with scanf which sets the
-       maximum number of chars that can be read. */
-        scanf("%d", n);
-       scanf("%d", d);
-       scanf("%d", g);
-       scanf("%d", text_len);
-       //2.read tokens
-       for (int i = 0; i < *text_len; i++) {
+    /* Read sizes: n prompt tokens, d embedding dim, g generated tokens,
+       text_len Stage 1 tokens. */
+    scanf("%d", n);
+    scanf("%d", d);
+    scanf("%d", g);
+    scanf("%d", text_len);
+
+    //1.read tokens for stage 1
+    for (int i = 0; i < *text_len; i++) {
         scanf(TOKEN_STR_SCANF_FORMAT, embedding_table[i]);
-       }
-       //3.read mask
-       for (int i = 0; i < *n; i++) {
+    }
+
+    //2.read prompt mask
+    for (int i = 0; i < *n; i++) {
         scanf("%d", &mask[i]);
-       }
-       //4.read prompt (nxd)
-       for (int i = 0; i < *n; i++) {
+    }
+
+    //3.read prompt rows (n x d)
+    for (int i = 0; i < *n; i++) {
         for (int j = 0; j < *d; j++) {
             scanf("%lf", &prompt[i][j]);
         }
-       }
-       //5.read gen (gxd)
-       for (int i = 0; i < *g; i++) {
+    }
+
+    //4.read generated rows (g x d)
+    for (int i = 0; i < *g; i++) {
         for (int j = 0; j < *d; j++) {
             scanf("%lf", &gen[i][j]);
         }
-       }
-       //6.read wq (dxd)
-       for (int i = 0; i < *d; i++) {
+    }
+
+    //5.read Wq (d x d)
+    for (int i = 0; i < *d; i++) {
         for (int j = 0; j < *d; j++) {
             scanf("%lf", &wq[i][j]);
         }
-       }
-       //7.read wk(dxd)
-       for (int i = 0; i < *d; i++) {
+    }
+
+    //6.read Wk (d x d)
+    for (int i = 0; i < *d; i++) {
         for (int j = 0; j < *d; j++) {
             scanf("%lf", &wk[i][j]);
         }
-       }
-       //8.read wv(dxd)
-       for (int i = 0; i < *d; i++) {
+    }
+
+    //7.read Wv (d x d)
+    for (int i = 0; i < *d; i++) {
         for (int j = 0; j < *d; j++) {
             scanf("%lf", &wv[i][j]);
         }
-       }
+    }
 }
 
-void create_embeddings(
+/*stage1:build and print the one-hot embedding table. Sorts the
+token list lexicographically, removes duplicates, and prints each
+unique token with a one-hot vector whose 1 sits at that token's
+index in the sorted list.*/
+void create_embeddings( 
     char embedding_table[MAX_TEXT_SIZE][MAX_TOKEN_LENGTH + 1], int text_len) {
     (void)embedding_table;
     (void)text_len;
-    /* TODO: collect the unique tokens, sort them lexicographically,
-       and print the one-hot vectors for the unique tokens. */
-       //1.use qsort to sort the token
-       qsort(embedding_table, text_len, MAX_TOKEN_LENGTH + 1, compare_tokens);
-       //2.remove duplicates
-       char unique_tokens[MAX_TEXT_SIZE][MAX_TOKEN_LENGTH + 1];
-       int count = 0;
-       for (int i = 0; i < text_len; i++) {
+    
+    //1.use qsort to sort the token 
+    qsort(embedding_table, text_len, MAX_TOKEN_LENGTH + 1, compare_tokens);
+    //2.remove duplicates
+    char unique_tokens[MAX_TEXT_SIZE][MAX_TOKEN_LENGTH + 1];
+    int count = 0;
+    for (int i = 0; i < text_len; i++) {
         if (i == 0 || strcmp(embedding_table[i], embedding_table[i-1]) != 0) {
             strcpy(unique_tokens[count], embedding_table[i]);
             count++;
         }
-       }
-       //3.print every unique token and their one-hot vector
-       for (int i = 0; i <= count - 1; i++) {
-        printf("\"%s\" -> (", unique_tokens[i]);
-        for (int j = 0; j <= count - 1; j++) {
-            if (j == i) {
-                printf("1");
-            } else {
-                printf("0");
-            } 
-            //fill the remaining positions with space
-            if (j < count - 1) {
-                printf(" ");
-            }
+    }
+       
+    //3.print every unique token and their one-hot vector
+    for (int i = 0; i <= count - 1; i++) {
+    printf("\"%s\" -> (", unique_tokens[i]);
+    for (int j = 0; j <= count - 1; j++) {
+        if (j == i) {
+            printf("1");
+        } else {
+            printf("0");
+        } 
+        //fill the remaining positions with space
+        if (j < count - 1) {
+            printf(" ");
         }
+    }
         printf(")\n");
-       }
+    }
 }
 
+/*Stage 2: project a set of embedding rows by a weight matrix.
+Each output row is the matrix product src[i] * w, used to build
+Q, K, or V depending on which weight matrix is passed in.*/
 void compute_projection(int count, int d, double src[MAX_TOKENS][MAX_D],
                         double w[MAX_D][MAX_D],
                         double dest[MAX_TOKENS][MAX_D]) {
@@ -286,7 +300,7 @@ void compute_projection(int count, int d, double src[MAX_TOKENS][MAX_D],
     (void)src;
     (void)w;
     (void)dest;
-    /* TODO: multiply each source row by the projection matrix. */
+    
     // loop each of the count prompt tokens
     for (int i = 0; i < count; i++) {
         // loop each of the d componets
@@ -301,27 +315,22 @@ void compute_projection(int count, int d, double src[MAX_TOKENS][MAX_D],
     }
 }
 
+/* Stages 3 and 4: compute either the prompt attention score matrix
+   or the prompt attention weight matrix, depending on apply_softmax.
+   With NO_SOFTMAX, fills scores_or_weights with scaled dot products
+   QK^T / sqrt(d), masking causal (j > i) and padding positions with
+   -INFINITY. With APPLY_SOFTMAX, the same masking applies and each
+   row is normalised using stable softmax (rows with no unmasked
+   columns are output as zeros). */
 void compute_attention_scores_or_weights_prompt(
     int n, int d, const int mask[MAX_TOKENS],
     double q[MAX_TOKENS][MAX_D], double k[MAX_TOKENS][MAX_D],
     double scores_or_weights[MAX_TOKENS][MAX_TOKENS],
     int apply_softmax) {
-    /* Supress compiler warning for unused variables until implemented */
-    (void)n;
-    (void)d;
-    (void)mask;
-    (void)q;
-    (void)k;
-    (void)scores_or_weights;
-    (void)apply_softmax;
-    /* TODO: compute scaled dot-product attention scores with causal and
-       padding masking. If apply_softmax == APPLY_SOFTMAX, convert each row
-       into attention weights with a stable softmax. */
-       //1.point out the masked elements in score with -infinity
-       //then do the calculation
-       //stage3: compute attention scores 
-       //stage4: use stable softmax to calculate the weithts
-       for (int i = 0; i < n; i++) {
+       
+    //1.point out the masked elements in score with -infinity
+    //then do the calculation
+    for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             //causal mask
             if (mask[i] == 0) {
@@ -340,50 +349,52 @@ void compute_attention_scores_or_weights_prompt(
                 scores_or_weights[i][j] = sum / sqrt(d);
             }
         }
-        //softmax part 
-        //1.update the max score until find out the biggest one
-       if (apply_softmax == APPLY_SOFTMAX) {
         
-        double max_score = -INFINITY;
-        for (int j = 0; j < n; j++) {
-            if (scores_or_weights[i][j] != -INFINITY
-            && scores_or_weights[i][j] > max_score) {
-                max_score = scores_or_weights[i][j];
-            }
-        }
-        //2.calculate the dominator of the formula
-        double sum_score = 0.0;
-        for (int j = 0; j < n; j++) {
-            if (scores_or_weights[i][j] != -INFINITY) {
-                sum_score += exp(scores_or_weights[i][j] - max_score);
-            }
-        }
-        //3.calculate the weights, subsitube into the formula
-        //the whole row turn to 0 when sum_score == 0.0
-        //deminator can't be zero
-        if (sum_score == 0.0) {
+        //softmax part
+        //1.update the max score until find out the biggest one
+        if (apply_softmax == APPLY_SOFTMAX) {
+
+            double max_score = -INFINITY;
             for (int j = 0; j < n; j++) {
-              scores_or_weights[i][j] = 0.0;  
+                if (scores_or_weights[i][j] != -INFINITY
+                    && scores_or_weights[i][j] > max_score) {
+                    max_score = scores_or_weights[i][j];
+                }
             }
 
-        } else {
-            //weight = 0 when score = -INFINITY
+            //2.calculate the denominator of the formula
+            double sum_score = 0.0;
             for (int j = 0; j < n; j++) {
-                if (scores_or_weights[i][j] == -INFINITY) {
+                if (scores_or_weights[i][j] != -INFINITY) {
+                    sum_score += exp(scores_or_weights[i][j] - max_score);
+                }
+            }
+
+            //3.calculate the weights, substitute into the formula
+            //the whole row turns to 0 when sum_score == 0.0
+            if (sum_score == 0.0) {
+                for (int j = 0; j < n; j++) {
                     scores_or_weights[i][j] = 0.0;
-                } else {
-                    scores_or_weights[i][j] = 
-                    exp(scores_or_weights[i][j] - max_score) / sum_score;
+                }
+            } else {
+                //weight = 0 when score = -INFINITY
+                for (int j = 0; j < n; j++) {
+                    if (scores_or_weights[i][j] == -INFINITY) {
+                        scores_or_weights[i][j] = 0.0;
+                    } else {
+                        scores_or_weights[i][j] =
+                            exp(scores_or_weights[i][j] - max_score) / sum_score;
+                    }
                 }
             }
         }
-        
-
-       }
     
     }
 }  
 
+/* Stage 5: compute the prompt attention output matrix. Each output
+   row is the weighted sum of the value rows V, using the attention
+   weights from Stage 4 as the blending coefficients. */
 void compute_attention_output_prompt(
     int n, int d, double weights[MAX_TOKENS][MAX_TOKENS],
     double v[MAX_TOKENS][MAX_D], double out[MAX_TOKENS][MAX_D]) {
@@ -409,6 +420,9 @@ void compute_attention_output_prompt(
     }
 }
 
+/* Stage 6: compute attention output for one generated token, reusing
+   prompt K/V from the cache and appending the new K/V. Returns the
+   number of dot products performed. */
 long compute_generation_with_cache(
     int n, int d, int g, int t, const int mask[MAX_TOKENS],
     double gen[MAX_GEN][MAX_D], double wq[MAX_D][MAX_D],
@@ -431,6 +445,7 @@ long compute_generation_with_cache(
     (void)output;
     /* TODO: compute the next generated output using the KV cache and return
        the number of dot products performed for that generation step. */
+    
     //1.multiply the embedding of the row gen[t] by the wq matrix to obtain 
     //a  vector of length d
     //the last step: count how many dot producte were computed
@@ -443,6 +458,7 @@ long compute_generation_with_cache(
         }
         dot_count++;
     }
+    
     //2.cpmpute K for the new tokens and append it to the cache
     for (int j = 0; j < d; j++) {
         k_cache[n+t][j] = 0.0;
@@ -451,6 +467,7 @@ long compute_generation_with_cache(
         }
         dot_count++;
     }
+    
     //3.compute V for the new tokens and append it to the cache
     for (int j = 0; j < d; j++) {
         v_cache[n+t][j] = 0.0;
@@ -459,6 +476,7 @@ long compute_generation_with_cache(
         }
         dot_count++;
     }
+    
     //4/calculate the scores
     double scores[MAX_TOKENS + MAX_GEN];
     //compute scaled dot product scores between q and all ached keys
@@ -476,6 +494,7 @@ long compute_generation_with_cache(
             dot_count++;
         }
     }
+    
     //5. stable softmax the cached scores
     //find the biggest score
     double max_score = -INFINITY;
@@ -485,12 +504,15 @@ long compute_generation_with_cache(
         }
     }
     double weights[MAX_TOKENS + MAX_GEN];
+    
     //calculate the deminator
     double sum_scores = 0.0;
     for (int i = 0; i <=n + t; i++) {
         if (scores[i] != -INFINITY) {
             weights[i]= exp(scores[i] - max_score);
             sum_scores += weights[i];
+        } else {
+            weights[i] = 0.0;
         }
     }
     
@@ -504,6 +526,7 @@ long compute_generation_with_cache(
             weights[i] = weights[i] / sum_scores;
         }
     }
+    
     //6.weighted sum of cached value vectirs
     for (int j = 0; j < d; j++) { // for every dimention
         output[j] = 0.0;
